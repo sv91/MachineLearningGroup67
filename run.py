@@ -1,10 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import sys, os
+sys.path.append(os.path.join(sys.path[0],'Provided files','scripts'))
 from proj1_helpers import *
 from helpers import *
 from costs import compute_loss
 from ridge_regression import *
-from gradient_descent_GD import *
+from least_squares_GD import *
 
 def build_k_indices (y, k_fold, seed):
     """build k indices for k-fold."""
