@@ -2,6 +2,7 @@
 """a function used to compute the loss."""
 
 import numpy as np
+from proj1_helpers import *
 
 
 def calculate_mse(e):
@@ -22,3 +23,10 @@ def compute_loss(y, tx, w):
     e = y - tx.dot(w)
     return calculate_mse(e)
     # return calculate_mae(e)
+
+
+def error_percent(y, tx, w):
+
+    y_pred = predict_labels(w,tx)
+
+    return np.mean(y_pred != y)
