@@ -13,10 +13,11 @@ def build_degree2_poly (x):
 
     x_st = standardize(x)[0]
     # x_st = np.hstack((np.ones((x.shape[0],1)), x))
+    print(max(x_st.flatten()))
 
     M = x_st.shape[1]
 
-    phi = np.empty([N,M*(M+1)/2])
+    phi = np.empty([N,int(M*(M+1)/2)])
 
     a = (M+1)/2
 
@@ -24,8 +25,23 @@ def build_degree2_poly (x):
         phi[:, M*i:M*(i+1)] = x_st*np.roll(x_st,i,axis=1)
 
     if M % 2 == 0:
-        phi[:,np.floor(a)*M:-1] = x_st[:,0:M/2-1]*x_st[:,M/2:-1]
+        phi[:,np.floor(a)*M:] = x_st[:,0:int(M/2)]*x_st[:,int(M/2):]
 
     # print(np.linalg.matrix_rank(phi))
+
+    return phi
+
+def build_degrees_nm(x,n,m):
+    N = x.shape[0]
+    M = x.shape[1]
+
+    x_st = standardize(x)[0]
+    x_st = x_st[:,1:]
+
+    phi = np.zeros((N,M*(m-n+1)))
+
+    for i in range(n,m):
+        j = i-n
+        phi[:,M*j:M*(j+1)] = x_st**i
 
     return phi
