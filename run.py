@@ -27,6 +27,8 @@ bc = np.nonzero(a>tX.shape[0]/2)
 tX = np.delete(tX,bc,axis=1)
 print(tX.shape)
 
+y = (y+1)/2
+
 means = np.zeros(tX.shape[1])
 
 for i in range(tX.shape[1]):
