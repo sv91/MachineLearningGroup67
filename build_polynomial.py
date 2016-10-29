@@ -13,7 +13,6 @@ def build_degree2_poly (x):
 
     x_st = standardize(x)[0]
     # x_st = np.hstack((np.ones((x.shape[0],1)), x))
-    print(max(x_st.flatten()))
 
     M = x_st.shape[1]
 

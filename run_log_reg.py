@@ -6,10 +6,10 @@ sys.path.append(os.path.join(sys.path[0],'Provided files','scripts'))
 from proj1_helpers import *
 from helpers import *
 from costs import *
-from ridge_regression import *
 from least_squares_GD import *
 from build_polynomial import *
 from logistic_regression import *
+
 
 def build_k_indices (y, k_fold, seed):
     """build k indices for k-fold."""
@@ -36,14 +36,16 @@ for i in range(tX.shape[1]):
     tX[tX[:, i] == -999, i] = means[i]
 
 poly_tX = build_degree2_poly(tX)
-print(max(tX.flatten()))
-std_tX = np.std(tX, axis=0)
-tX[:, std_tX>0] = tX[:, std_tX>0] / std_tX[std_tX>0]
-# tx_3_10 = build_degrees_nm(tX,3,10)
-# poly_tX = np.hstack((poly_tX,tx_3_10))
-print(max(tX.flatten()))
+tx_3_10 = build_degrees_nm(tX,3,10)
+poly_tX = np.hstack((poly_tX,tx_3_10))
+
+print(max(poly_tX.flatten()))
+std_tX = np.std(poly_tX, axis=0)
+poly_tX[:, std_tX>0] = poly_tX[:, std_tX>0] / std_tX[std_tX>0]
+print(max(poly_tX.flatten()))
 y = (y+1)/2
 
+print(poly_tX.shape)
 
 seed = 234
 k_fold = 4
@@ -55,10 +57,10 @@ k_indices = build_k_indices(y, k_fold, seed)
 error_te = np.zeros(k_fold)
 error_tr = np.zeros(k_fold)
 max_iter = 3000
-lambda_ = 10
+lambda_ = 100
 
 for k in range(k_fold):
-    print("Computing fold no {}".format(k))
+    print("Computing fold no {}".format(k+1))
     y_te = y[k_indices[k]]
     tX_te = poly_tX[k_indices[k]]
     tr_indices = np.delete(k_indices, k, axis=0)
@@ -80,7 +82,7 @@ for k in range(k_fold):
     error_te[k] = error_percent(2*y_te-1, tX_te, w)
     error_tr[k] = error_percent(2*y_tr-1, tX_tr, w)
 
-    print("Fold no {} : tr error = {} , te error = {} ".format(k,error_te[k],error_tr[k]))
+    print("Fold no {} : te error = {} , tr error = {} ".format(k+1,error_te[k],error_tr[k]))
 
 
 # plt.plot(range(k_fold)+1,error_te,'b')
@@ -100,12 +102,36 @@ weights = logistic_regression_penalized(y, poly_tX, gamma, lambda_, max_iter)
 DATA_TEST_PATH = '../Project1_Data/test.csv'
 _, tX_test, ids_test = load_csv_data(DATA_TEST_PATH)
 
-# tX_test = np.delete(tX_test,bc,axis=1)
+print(tX_test.shape)
+
 for i in range(tX_test.shape[1]):
     tX_test[tX_test[:, i] == -999, i] = means[i]
 
-tX_test = build_degree2_poly(tX_test)
+N = tX_test.shape[0]
+y_pred = np.zeros(N)
+
+#divide test into pieces and continue with classifying
+n_of_piece = 10
+div_size = int(np.ceil(N/n_of_piece))
+
+for i in range(n_of_piece):
+    print('Doing part {} of classification'.format(i+1))
+
+    fin = min(div_size*(i+1),N)
+    tX_test_i = tX_test[div_size*i:fin,:]
+    # tX_test = np.delete(tX_test,bc,axis=1)
+
+    poly_tX_test_i = build_degree2_poly(tX_test_i)
+    tx_3_10 = build_degrees_nm(tX_test_i,3,10)
+    tX_test_i = np.hstack((poly_tX_test_i,tx_3_10))
+    std_tX = np.std(tX_test_i, axis=0)
+    tX_test_i[:, std_tX>0] = tX_test_i[:, std_tX>0] / std_tX[std_tX>0]
+
+    y_pred_i = predict_labels(weights, tX_test_i)
+    y_pred[div_size*i:fin] = y_pred_i
+
+print(y_pred.shape)
 
 OUTPUT_PATH = '../Project1_Data/results.csv'
-y_pred = predict_labels(weights, tX_test)
+
 create_csv_submission(ids_test, y_pred, OUTPUT_PATH)
