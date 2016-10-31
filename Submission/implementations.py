@@ -3,8 +3,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-import costs #sprawdzic biblioteke
 
+from costs import * 
 from numpy.random import rand, randn
 
 
@@ -14,7 +14,7 @@ from numpy.random import rand, randn
 
 def compute_gradient_LS(y, tx, w):
     """Compute the gradient."""
-     e = y - tx.dot(w)
+    e = y - tx.dot(w)
     N = len(y)
 
     grad_f = -1/N*tx.T.dot(e)
@@ -30,10 +30,10 @@ def least_squares_GD(y, tx, initial_w, max_iters, gamma):
         
         grad_f = compute_gradient_LS(y, tx, w)
         w = w - gamma * grad_f
-        loss = 
+        loss =  costs.compute_loss(y,tx,w)
 
 
-    return (w,loss)                              #DOPISAĆ BŁĄD WSZĘDZIE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+    return (w,loss)                              
 
 
 #-----------------------------------------------------------------------
@@ -51,7 +51,7 @@ def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
         r = np.random.random_integers(0,y.shape[0])
         ln = computeGradient(y[r],tx[r,:],w)
         w = w - gamma * ln
-        loss = 
+        loss =  costs.compute_loss(y,tx,w)
     return (w,loss)
 
 
@@ -62,11 +62,11 @@ def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
 
 def least_squares(y, tx):
     """Compute least squares regression"""
-    xtx=np.dot(tx.T,tx)
-    xtx=np.linalg.inv(xtx)
-    w=np.dot(xtx,np.dot(tx.T,y))
+    xtx = np.dot(tx.T,tx)
+    xtx = np.linalg.inv(xtx)
+    w = np.dot(xtx,np.dot(tx.T,y))
     
-    loss=
+    loss =  costs.compute_loss(y,tx,w)
     
     return (w,loss)
 
@@ -84,7 +84,7 @@ def ridge_regression(y, tx, lambda_):
     y_p = tx.T.dot(y);
     w = np.linalg.solve(A_p, y_p)
     
-    loss=
+    loss =  costs.compute_loss(y,tx,w)
     return (w,loss)
 
 #-----------------------------------------------------------------------
@@ -108,20 +108,22 @@ def calculate_neg_loglike(y, tx, w):
 def get_oracle(y, tx, w, get_H = True):
     """return the loss, gradient, and hessian."""
     y_e = tx.dot(w).flatten()
+    N = len(y)
 
-    loss = np.sum(np.log(1 + np.exp(y_e)) - (y * y_e))
+    loss = np.sum(np.log(1 + np.exp(-y*y_e))) 
 
-    grad = tx.T.dot(sigmoid(y_e) - y)
+    grad = -tx.T.dot(y * sigmoid(-y * y_e)) 
 
     if get_H:
         S = np.diag((sigmoid(y_e) * (1 - sigmoid(y_e))))
 
-        H = tx.T.dot(S.dot(tx))
+        H = tx.T.dot(S.dot(tx)) 
     else:
         H = np.ones((tx.shape[1],tx.shape[1]))
 
 
-    return loss, grad, H
+    return loss, grad, H 
+
 
 def logistic_regression(y,tx, initial_w,  max_iter, gamma):
     """implement logistic regression"""
@@ -158,10 +160,11 @@ def logistic_regression(y,tx, initial_w,  max_iter, gamma):
 def get_oracle_penalized(y, tx, w, lambda_, get_H = True):
     """return the loss, gradient, and hessian."""
     y_e = tx.dot(w).flatten()
+    N = len(y)
 
-    loss = np.sum(np.log(1 + np.exp(y_e)) - (y * y_e)) + lambda_*np.linalg.norm(w)**2
+    loss = np.sum(np.log(1 + np.exp(-y*y_e))) + lambda_*np.linalg.norm(w)**2
 
-    grad = tx.T.dot(sigmoid(y_e) - y) + 2*lambda_*w
+    grad = -tx.T.dot(y * sigmoid(-y * y_e)) + 2 * lambda_ * w
 
     if get_H:
         S = np.diag((sigmoid(y_e) * (1 - sigmoid(y_e))))
