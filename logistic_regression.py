@@ -9,11 +9,21 @@ def sigmoid(t):
 def calculate_neg_loglike(y, tx, w):
     """compute the cost by negative log likelihood."""
 
-    a = np.log(1 + np.exp(tx.dot(w))).flatten()
-    b = (y * (tx.dot(w))).flatten()
+    y_e = tx.dot(w).flatten()
 
-    return np.sum(a - b)
+    loss = np.sum(np.log(1 + np.exp(-y * y_e)))
 
+    return loss
+
+def calculate_avg_neg_loglike(y, tx, w):
+    """compute the cost by negative log likelihood."""
+
+    N = len(y)
+    y_e = tx.dot(w).flatten()
+
+    loss = 1/N*np.sum(np.log(1 + np.exp(-y * y_e)))
+
+    return loss
 
 def get_oracle(y, tx, w, get_H = True):
     """return the loss, gradient, and hessian."""
@@ -36,10 +46,11 @@ def get_oracle(y, tx, w, get_H = True):
 def get_oracle_penalized(y, tx, w, lambda_, get_H = True):
     """return the loss, gradient, and hessian."""
     y_e = tx.dot(w).flatten()
+    N = len(y)
 
-    loss = np.sum(np.log(1 + np.exp(y_e)) - (y * y_e)) + lambda_*np.linalg.norm(w)**2
+    loss = np.sum(np.log(1 + np.exp(-y*y_e))) + lambda_*np.linalg.norm(w)**2
 
-    grad = tx.T.dot(sigmoid(y_e) - y) + 2*lambda_*w
+    grad = -tx.T.dot(y * sigmoid(-y * y_e)) + 2 * lambda_ * w
 
     if get_H:
         S = np.diag((sigmoid(y_e) * (1 - sigmoid(y_e))))
@@ -96,6 +107,8 @@ def logistic_regression(y,tx, gamma, max_iter, tol = 1e-8):
         if len(losses) > 1 and np.abs(losses[-1] - losses[-2]) < tol:
             break
 
+    print("Last iteration={i}, the loss={l}".format(i=iter, l=loss))
+
     return w
 
 def logistic_regression_penalized(y,tx, gamma, lambda_, max_iter, tol = 1e-8):
@@ -121,6 +134,8 @@ def logistic_regression_penalized(y,tx, gamma, lambda_, max_iter, tol = 1e-8):
         if len(losses) > 1 and np.abs(losses[-1] - losses[-2]) < tol:
             break
 
+    print("Last iteration={i}, the loss={l}".format(i=iter, l=loss))
+
     return w
 
 def logistic_regression_penalized_newton(y, tx, gamma, max_iter, lambda_, tol = 1e-8):
@@ -143,5 +158,6 @@ def logistic_regression_penalized_newton(y, tx, gamma, max_iter, lambda_, tol = 
         losses.append(loss)
         if len(losses) > 1 and np.abs(losses[-1] - losses[-2]) < tol:
             break
+
 
     return w

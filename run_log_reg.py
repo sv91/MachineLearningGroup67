@@ -43,21 +43,21 @@ print(max(poly_tX.flatten()))
 std_tX = np.std(poly_tX, axis=0)
 poly_tX[:, std_tX>0] = poly_tX[:, std_tX>0] / std_tX[std_tX>0]
 print(max(poly_tX.flatten()))
-y = (y+1)/2
+# y = (y+1)/2
 
 print(poly_tX.shape)
 
 seed = 234
 k_fold = 4
+lambdas = np.array([10])
 # split data in k fold
 k_indices = build_k_indices(y, k_fold, seed)
 # define lists to store the loss of training data and test data
-# rmse_te = np.zeros(k_fold)
-# rmse_tr = np.zeros(k_fold)
-error_te = np.zeros(k_fold)
-error_tr = np.zeros(k_fold)
-max_iter = 3000
-lambda_ = 100
+loss_te = np.zeros((k_fold,len(lambdas)))
+loss_tr = np.zeros((k_fold,len(lambdas)))
+error_te = np.ones(k_fold)
+error_tr = np.ones(k_fold)
+max_iter = 2000
 
 for k in range(k_fold):
     print("Computing fold no {}".format(k+1))
@@ -67,32 +67,36 @@ for k in range(k_fold):
     y_tr = y[tr_indices.flatten()]
     tX_tr = poly_tX[tr_indices.flatten()]
 
-    L = 1/4*np.linalg.norm(tX_tr.T.dot(tX_tr),ord=2)+2*lambda_
-    print(L)
-    gamma = 1/L
-    print(gamma)
-    # gamma = 1e-25
+    L_orj = 1/4*np.linalg.norm(tX_tr.T.dot(tX_tr),ord=2)
 
-    w = logistic_regression_penalized(y_tr, tX_tr, gamma, lambda_, max_iter)
+    for ind, lambda_ in enumerate(lambdas):
+        L = L_orj + 2*lambda_
+        gamma = 1 / L
 
-    # loss_te = compute_loss(y_te, tX_te, w)
-    # rmse_te[k] = np.sqrt(2 * loss_te)
-    # loss_tr = compute_loss(y_tr, tX_tr, w)
-    # rmse_tr[k] = np.sqrt(2 * loss_tr)
-    error_te[k] = error_percent(2*y_te-1, tX_te, w)
-    error_tr[k] = error_percent(2*y_tr-1, tX_tr, w)
+        w = logistic_regression_penalized(y_tr, tX_tr, gamma, lambda_, max_iter)
 
-    print("Fold no {} : te error = {} , tr error = {} ".format(k+1,error_te[k],error_tr[k]))
+        loss_te[k, ind] = calculate_neg_loglike(y_te, tX_te, w)
+        loss_tr[k, ind] = calculate_neg_loglike(y_tr, tX_tr, w)
+
+        error_te[k] = min(error_percent(y_te, tX_te, w),error_te[k])
+        error_tr[k] = min(error_percent(y_tr, tX_tr, w),error_tr[k])
+
+    print("Fold no {} : min te error = {} , min tr error = {} ".format(k+1,error_te[k],error_tr[k]))
 
 
-# plt.plot(range(k_fold)+1,error_te,'b')
-# plt.plot(range(k_fold)+1,error_te,'r')
+mean_loss_te = np.mean(loss_te, axis=1).flatten()
+mean_loss_tr = np.mean(loss_tr, axis=1).flatten()
 
-# ind = np.argmin(error_te)
+plt.semilogx(lambdas, mean_loss_te, color='r', label='Test')
+plt.semilogx(lambdas, mean_loss_te, color='b', label='Training')
+plt.xlabel("Lambda")
+plt.ylabel("Loss")
+plt.legend(loc=0)
+plt.title("Lambda vs. Average Loss for 5-fold penalized logistic regression")
+plt.savefig("lambda_loss")
 
-# tr_indices = np.delete(k_indices, k, axis=0)
-# y_tr = y[tr_indices.flatten()]
-# tX_tr = poly_tX[tr_indices.flatten()]
+ind = np.argmin(mean_loss_te)
+lambda_ = lambdas[ind]
 
 L = 1/4*np.linalg.norm(poly_tX.T.dot(poly_tX),ord=2)
 gamma = 1/L
