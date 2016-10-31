@@ -9,13 +9,14 @@
 
 \author{
   Kanbak Can, Kubik Anna, Vostriakov Alexander\\
-  \textit{Ecole Polytechnique Fédérale de Lausanne}
+  \textit{Ecole Polytechnique Federale de Lausanne}
 }
 
 \maketitle
 
 \begin{abstract}
- Some abstract
+ Computer Science have revolutionized the society as well as science in general. Nowadays, Machine Learning is revolutionizing Computer Science.
+ This report summarize what we learned so far in Machine Learning and how we used that knowledge to classify the provided test set.
 \end{abstract}
 
 \section{Introduction}
@@ -24,7 +25,14 @@ Quick introduction
 
 \section{The Structure of a Paper}
 \label{sec:structure-paper}
-\subsection{Method}
+\subsection{Data sets}
+The train data used for this project is composed of the output variables $\mathbf{y}$ and of a set of input variables $\mathbf{tX}$. The input variables $\mathbf{tX}$ have a dimensionality $D=30$ and a cardinality of $N=250000$ - same cardinality as the output variables $\mathbf{y}$. The 30 variables of $\mathbf{tX}$ contains 29 real variables and one categorical ones containing 4 categories.
+
+The test data used to generate prediction of possible outputs $\mathbf{y_p_r_e_d}$ consists of a set of input variables $\mathbf{tX_t_e_s_t}$ of the same dimensionality as $\mathbf{tX}$ and a cardinality of $N=568238$.
+\subsection{Data pre-processing}
+After a visual inspection of the data, it appeared that most the input variables contained the value $-999$. We supposed that those values corresponded to an error or a missing value. To treat this issue, we replaced those values by the average value of the corresponding input if that input had more good values that errors. Otherwise, we did not take in account that input.
+Furthermore, it seemed that in the last input, that error value was $0$ instead of $-999$. Therefore we applied the same method as previously.
+\subsection{Classification}
 What we did and how
 \subsection{Results}
 What results we got, analysis.
