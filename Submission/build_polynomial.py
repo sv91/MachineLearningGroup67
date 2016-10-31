@@ -7,12 +7,11 @@ sys.path.append(os.path.join(sys.path[0],'Provided files','scripts'))
 from helpers import standardize
 
 def build_degree2_poly (x):
-    """polynomial basis functions for input data x, for j=1 up to j=degree."""
+    """Creates the second degree polynomial basis function for input data x"""
 
     N = x.shape[0]
 
-    x_st = standardize(x)[0]
-    # x_st = np.hstack((np.ones((x.shape[0],1)), x))
+    x_st = standardize(x)[0] #input is standardized beforehand
 
     M = x_st.shape[1]
 
@@ -26,12 +25,11 @@ def build_degree2_poly (x):
     if M % 2 == 0:
         phi[:,np.floor(a)*M:] = x_st[:,0:int(M/2)]*x_st[:,int(M/2):]
 
-    # print(np.linalg.matrix_rank(phi))
-
     return phi
 
 def build_degrees_nm(x,n,m):
-    N = x.shape[0]
+    """ Creates the powers of features from nth power to mth"""
+	N = x.shape[0]
     M = x.shape[1]
 
     x_st = standardize(x)[0]
