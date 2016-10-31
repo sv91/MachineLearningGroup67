@@ -23,11 +23,6 @@ def build_k_indices (y, k_fold, seed):
 DATA_TRAIN_PATH = '../Project1_Data/train.csv'
 y, tX, ids = load_csv_data(DATA_TRAIN_PATH)
 
-# a = np.sum(tX==-999,axis=0)
-# bc = np.nonzero(a>tX.shape[0]/2)
-# tX = np.delete(tX,bc,axis=1)
-# print(tX.shape)
-
 means = np.zeros(tX.shape[1])
 
 for i in range(tX.shape[1]):
@@ -42,7 +37,6 @@ print(max(poly_tX.flatten()))
 std_tX = np.std(poly_tX, axis=0)
 poly_tX[:, std_tX>0] = poly_tX[:, std_tX>0] / std_tX[std_tX>0]
 print(max(poly_tX.flatten()))
-# y = (y+1)/2
 
 print(poly_tX.shape)
 
@@ -58,6 +52,7 @@ error_te = np.ones(k_fold)
 error_tr = np.ones(k_fold)
 max_iter = 2000
 
+#Cross validation to find the optimal lambda
 for k in range(k_fold):
     print("Computing fold no {}".format(k+1))
     y_te = y[k_indices[k]]
@@ -83,8 +78,8 @@ for k in range(k_fold):
     print("Fold no {} : min te error = {} , min tr error = {} ".format(k+1,error_te[k],error_tr[k]))
 
 
-mean_loss_te = np.mean(loss_te, axis=1).flatten()
-mean_loss_tr = np.mean(loss_tr, axis=1).flatten()
+mean_loss_te = np.mean(loss_te, axis=0).flatten()
+mean_loss_tr = np.mean(loss_tr, axis=0).flatten()
 
 plt.semilogx(lambdas, mean_loss_te, color='r', label='Test')
 plt.semilogx(lambdas, mean_loss_te, color='b', label='Training')
@@ -92,11 +87,13 @@ plt.xlabel("Lambda")
 plt.ylabel("Loss")
 plt.legend(loc=0)
 plt.title("Lambda vs. Average Loss for 5-fold penalized logistic regression")
+plt.grid()
 plt.savefig("lambda_loss")
 
 ind = np.argmin(mean_loss_te)
 lambda_ = lambdas[ind]
 
+# Final training using chosen lambda and all of the data
 L = 1/4*np.linalg.norm(poly_tX.T.dot(poly_tX),ord=2)
 gamma = 1/L
 
@@ -110,6 +107,7 @@ print(tX_test.shape)
 for i in range(tX_test.shape[1]):
     tX_test[tX_test[:, i] == -999, i] = means[i]
 
+#Classification is done in 10 parts to reduce resource consumption
 N = tX_test.shape[0]
 y_pred = np.zeros(N)
 
@@ -122,7 +120,6 @@ for i in range(n_of_piece):
 
     fin = min(div_size*(i+1),N)
     tX_test_i = tX_test[div_size*i:fin,:]
-    # tX_test = np.delete(tX_test,bc,axis=1)
 
     poly_tX_test_i = build_degree2_poly(tX_test_i)
     tx_3_10 = build_degrees_nm(tX_test_i,3,10)
